@@ -2,7 +2,7 @@
 
 A Python pipeline that transforms raw Qualtrics Excel exports into a complete, documented, analysis-ready package. Handles test data removal, data type correction, and generates reports and codebooks automatically.
 
-### The Challenge
+## The Challenge
 
 Anyone who has worked with survey data knows that the real work begins after the data is collected. Raw exports from platforms like Qualtrics are a good starting point, but they come with challenges that can take hours of manual work to overcome:
 
@@ -13,13 +13,13 @@ Anyone who has worked with survey data knows that the real work begins after the
 
 This manual cleaning is not only time-consuming but also prone to human error, potentially compromising the integrity of your analysis.
 
-### The Solution
+## The Solution
 
 This Jupyter Notebook provides a one-click solution to these challenges. It acts as a pipeline that ingests a raw Qualtrics Excel file and automatically produces a complete analysis package.
 
 The pipeline handles all the tedious "data janitor" work, allowing you to move directly from data collection to analysis.
 
-#### Why a Jupyter Notebook?
+### Why a Jupyter Notebook?
 
 The choice of a Jupyter Notebook was deliberate to make the process transparent, interactive, and user-friendly.
 
@@ -27,7 +27,7 @@ The choice of a Jupyter Notebook was deliberate to make the process transparent,
 - **Interactivity and Verification:** After running a cell, you can easily inspect the dataframes and intermediate outputs. This makes it simple to verify that each step of the cleaning process is working as expected.
 - **Integrated Documentation:** Notebooks allow for a rich combination of executable code, explanatory text, and outputs. This turns the tool into an interactive document where the "how" and "why" are explained alongside the code.
 
-### Features
+## Features
 
 - **User-Friendly GUI:** Pop-up windows guide you to select your input file and output folder.
 - **Automated Data Cleaning:** Automatically removes test data, standardizes values, and creates data quality flags.
@@ -35,9 +35,9 @@ The choice of a Jupyter Notebook was deliberate to make the process transparent,
 - **HTML Report:** Generates a single, shareable report with data quality metrics and response summaries.
 - **NLP-Ready JSON Export:** Creates a structured JSON file for sentiment analysis or topic modeling.
 
-### Getting Started
+## Getting Started
 
-#### First, You'll Need Jupyter Notebook
+### First, You'll Need Jupyter Notebook
 
 If you're new to Python or data analysis, the easiest way to get started is by installing the **Anaconda Distribution**. It's a free, all-in-one package that includes Python, Jupyter Notebook, and all the essential data science libraries.
 
@@ -45,7 +45,7 @@ If you're new to Python or data analysis, the easiest way to get started is by i
 2. **Install Anaconda:** Run the installer, following the on-screen instructions. We recommend sticking with the default settings.
 3. **Launch Jupyter Notebook:** Once installed, open the **Anaconda Navigator** application. From the Navigator's home screen, you'll see an icon for Jupyter Notebook. Click "Launch." A new tab will open in your web browser with the Jupyter file navigator.
 
-#### Running the Pipeline
+### Running the Pipeline
 
 1. **Prepare Your Environment:**
 
@@ -67,7 +67,7 @@ If you're new to Python or data analysis, the easiest way to get started is by i
 
    Navigate to your chosen output folder to find your complete set of analysis-ready files.
 
-### Output Files
+## Output Files
 
 The pipeline produces a complete package of files to support every stage of your analysis.
 
@@ -79,8 +79,9 @@ The pipeline produces a complete package of files to support every stage of your
 | `comprehensive_codebook.csv / .xlsx` | **Data Dictionary.** Translates cryptic column names like `q5` into the full, human-readable question text. |
 | `variable_summaries.xlsx`            | **Descriptive Statistics.** Excel file with pre-calculated statistics (mean, median, counts) for all your variables. |
 
-### License
+## License
 
 Qualtrics Processing Pipeline © 2025
 
 Distributed under the [Creative Commons Attribution 4.0 International License](https://creativecommons.org/licenses/by/4.0/deed.en).
+
