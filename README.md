@@ -1,4 +1,4 @@
-# Qualtrics Processing Pipeline
+# qualtrics-processing-pipeline
 
 A Python pipeline that transforms raw Qualtrics Excel exports into a complete, documented, analysis-ready package. Handles test data removal, data type correction, and generates reports and codebooks automatically.
 
@@ -53,7 +53,7 @@ If you're new to Python or data analysis, the easiest way to get started is by i
 
 2. **Run the Pipeline:**
 
-   From the Jupyter Notebook browser tab, navigate to where you saved the `Qualtrics_Processing_Pipeline.ipynb` file and click on it to open. Once it's open, select "Run All Cells" from the "Cell" or "Run" menu at the top.
+   From the Jupyter Notebook browser tab, navigate to where you saved the `qualtrics_processing_pipeline.ipynb` file and click on it to open. Once it's open, select "Run All Cells" from the "Cell" or "Run" menu at the top.
 
 3. **Select Your Input File:**
 
