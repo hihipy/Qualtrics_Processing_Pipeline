@@ -14,6 +14,8 @@
 
 A Python pipeline that turns raw Qualtrics Excel exports into a documented, analysis-ready package. It removes test data, corrects data types, and generates reports and codebooks automatically.
 
+---
+
 ## The Problem
 
 Anyone who has worked with survey data knows the real work begins after the data is collected. Raw exports from platforms like Qualtrics are a good starting point, but they come with a few recurring problems:
@@ -24,6 +26,8 @@ Anyone who has worked with survey data knows the real work begins after the data
 - **No documentation:** The raw file gives you no context, so it's hard to trust the data or reproduce your cleaning steps later.
 
 Doing this by hand takes time, and it's easy to introduce mistakes that compromise the analysis.
+
+---
 
 ## The Solution
 
@@ -37,6 +41,8 @@ A notebook keeps the process transparent, interactive, and easy to follow.
 - **Interactivity and verification:** After running a cell, you can inspect the dataframes and intermediate outputs, which makes it simple to confirm each cleaning step is working as expected.
 - **Integrated documentation:** Notebooks combine executable code, explanatory text, and outputs, which turns the tool into an interactive document where the "how" and "why" sit alongside the code.
 
+---
+
 ## Features
 
 - **Pop-up file selection:** Windows guide you to choose your input file and output folder.
@@ -44,6 +50,8 @@ A notebook keeps the process transparent, interactive, and easy to follow.
 - **Data typing:** Sets numbers, dates, and categories to the correct types to prevent common analysis errors.
 - **HTML report:** Generates a single, shareable report with data quality metrics and response summaries.
 - **NLP-ready JSON export:** Creates a structured JSON file for sentiment analysis or topic modeling.
+
+---
 
 ## Getting Started
 
@@ -77,6 +85,8 @@ If you're new to Python or data analysis, the easiest way to get started is the 
 
    Open your chosen output folder to find the finished, analysis-ready files.
 
+---
+
 ## Output Files
 
 The pipeline produces a full set of files to support every stage of your analysis.
@@ -88,6 +98,8 @@ The pipeline produces a full set of files to support every stage of your analysi
 | `sentiment_analysis_data.json`       | **NLP-ready dataset.** Structured JSON file for sentiment analysis, topic modeling, or other text-based analysis. This is the input for the `simple_sentiment_analyzer.py` script. |
 | `comprehensive_codebook.csv / .xlsx` | **Data dictionary.** Translates cryptic column names like `q5` into the full, human-readable question text. |
 | `variable_summaries.xlsx`            | **Descriptive statistics.** Excel file with pre-calculated statistics (mean, median, counts) for all your variables. |
+
+---
 
 ## License
 
