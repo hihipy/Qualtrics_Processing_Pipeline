@@ -1,0 +1,192 @@
+VERIFYING THE MARIMO CONVERSION
+qualtrics_processing_pipeline.ipynb  ->  qualtrics_processing_pipeline.py
+
+Files in this bundle
+--------------------
+qualtrics_processing_pipeline.py   the converted marimo notebook
+make_test_fixture.py               builds a synthetic Qualtrics export
+qualtrics_test_export.xlsx         a pre-built fixture (78 rows x 31 columns)
+verify_conversion.txt              this file
+
+
+Environment variables
+---------------------
+The original notebook opens two tkinter dialogs: one to pick the input .xlsx and
+one to pick the output folder. Those still work. Two environment variables now
+bypass them so the notebook can run headlessly.
+
+  QUALTRICS_INPUT    path to the raw Qualtrics .xlsx
+  QUALTRICS_OUTPUT   folder to write the generated files into
+
+Unset either one and you get the original dialog for that step.
+
+
+One-time setup
+--------------
+  pip install marimo pandas numpy openpyxl
+
+
+TEST 1  script mode
+-------------------
+Confirms the file runs end to end as a plain Python script, which is the
+`python notebook.py` half of the marimo output contract.
+
+  mkdir -p testout
+  QUALTRICS_INPUT=./qualtrics_test_export.xlsx \
+  QUALTRICS_OUTPUT=./testout \
+  python qualtrics_processing_pipeline.py
+
+Expect exit code 0 and this in the tail of the output:
+
+  === Processing Complete ===
+  7 files were generated.
+
+Expect these 9 files in ./testout (7 logical outputs, 2 with .csv and .xlsx
+variants counted once by the pipeline's own tally):
+
+  README.txt
+  analysis_ready_data.csv
+  analysis_ready_data.xlsx
+  comprehensive_codebook.csv
+  comprehensive_codebook.xlsx
+  comprehensive_summary_report.html
+  sentiment_analysis_data.json
+  sentiment_analysis_flattened.csv
+  variable_summaries.xlsx
+
+
+TEST 2  expected numbers
+------------------------
+The fixture is seeded, so these numbers are exact. Anything different means the
+pipeline behaved differently, not that the fixture drifted.
+
+  Fixture rows                        78  (1 question-text row + 77 responses)
+  Preview + spam responses removed     6
+  Surviving responses                 71
+  analysis_ready_data.csv rows        71
+  analysis_ready_data.csv columns     66
+  Codebook variable definitions       58
+  Q2 matrix columns detected           6
+  Q5 contaminated values nulled       16
+  Flattened response-question pairs  910
+
+Check the row count directly:
+
+  python -c "import pandas as pd; d=pd.read_csv('testout/analysis_ready_data.csv'); print(len(d), len(d.columns))"
+
+Expect: 71 66
+
+Grep the log for per-step completion. All six should appear:
+
+  Step 1 Complete
+  Step 2a Complete
+  Step 2b Complete
+  Step 3a Complete
+  Step 3b Complete
+  Processing Complete
+
+
+TEST 3  notebook mode
+---------------------
+Confirms the `marimo edit` half of the contract without needing a browser.
+`marimo export html` executes every cell as a notebook, so the mo.md summary
+blocks are exercised rather than the gated print branches.
+
+  mkdir -p testout2
+  QUALTRICS_INPUT=./qualtrics_test_export.xlsx \
+  QUALTRICS_OUTPUT=./testout2 \
+  marimo export html qualtrics_processing_pipeline.py -o nb.html
+
+Expect exit code 0 and an nb.html around 600 KB. Then confirm the markdown
+summaries rendered:
+
+  grep -c "Step 3a assigned" nb.html
+
+Expect a nonzero count. Repeat for "Step 1 loaded", "Step 2a separated",
+"Step 2b cleaned", "Step 3b optimized", "Processing complete".
+
+
+TEST 4  dependency graph
+------------------------
+Marimo re-derives the dataflow graph from the code rather than trusting the
+`def _(deps)` signatures. If a signature or return tuple were wrong, or a name
+were defined in two cells, or the graph had a cycle, this command fails.
+
+  marimo export script qualtrics_processing_pipeline.py -o flat.py
+
+Expect exit code 0 and a flat.py around 3200 lines.
+
+
+TEST 5  structural checks
+-------------------------
+Each of these should print 0.
+
+  grep -c "^\s*%"  qualtrics_processing_pipeline.py     # no line or cell magics
+  grep -c "^\s*!"  qualtrics_processing_pipeline.py     # no shell escapes
+  grep -c "display(" qualtrics_processing_pipeline.py   # no display() calls
+
+Each of these should print 1.
+
+  grep -c "^import marimo$" qualtrics_processing_pipeline.py
+  grep -c '^__generated_with = "0.20.2"$' qualtrics_processing_pipeline.py
+  grep -c '^app = marimo.App(width="medium")$' qualtrics_processing_pipeline.py
+  grep -c '^if __name__ == "__main__":$' qualtrics_processing_pipeline.py
+  grep -c "import marimo as mo" qualtrics_processing_pipeline.py
+
+This should print 26, the cell count.
+
+  grep -c "^@app.cell" qualtrics_processing_pipeline.py
+
+No single-element return should be missing its trailing comma. This should
+print nothing:
+
+  grep -nE "return \([A-Za-z_][A-Za-z0-9_]*\)$" qualtrics_processing_pipeline.py
+
+
+TEST 6  reproducibility
+-----------------------
+Script mode and notebook mode should produce identical data files.
+
+  md5sum testout/analysis_ready_data.csv testout2/analysis_ready_data.csv
+
+Expect two matching hashes.
+
+
+TEST 7  the dialogs still work
+------------------------------
+Run with no environment variables set, on a machine with a display:
+
+  python qualtrics_processing_pipeline.py
+
+Expect the file picker, then the folder picker, exactly as the notebook behaved.
+Cancelling the folder picker still falls back to a timestamped
+qualtrics_output_YYYYMMDD_HHMMSS directory, unchanged from the original.
+
+
+Regenerating the fixture
+------------------------
+  python make_test_fixture.py my_fixture.xlsx --rows 200
+
+The seed is fixed at 20260805, so a given --rows value always produces the same
+file. The fixture deliberately contains: 4 survey previews, 2 spam responses,
+5 straight-liners, 6 partial completions, a Q5 column mixing integers with free
+text ("about 10 hours", "8-12", "n/a") to exercise the contaminated-numeric
+handler, a Q2# matrix block to exercise the series detection, a date column
+stored as text, and blank open-text answers.
+
+
+Known non-issues
+----------------
+1. On pandas 3.x you will see a Pandas4Warning about select_dtypes and 'str'
+   dtypes, raised inside create_variable_summaries. It comes from the original
+   notebook code, which was preserved verbatim, and does not affect output.
+
+2. analysis_ready_data.csv contains flag_duration_too_short and
+   flag_duration_too_short.1. The duplicate suffix comes from the pipeline
+   adding the same quality-flag columns twice; the .1 is pandas deduplicating
+   on write. This is original notebook behavior, not a conversion artifact.
+
+3. Row 0 of the fixture triggers "[WARNING] Row 0 may not contain typical
+   Qualtrics question text" followed by "codebook_source: mixed". The real
+   pipeline hits the same branch on many exports. Both paths produce a valid
+   codebook.

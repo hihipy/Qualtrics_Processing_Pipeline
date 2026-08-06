@@ -159,3 +159,7 @@ venv/
 # <<< managed gitignore: end <<<
 
 # --- local rules: edit freely, never overwritten -----------------------------
+testout/
+testout2/
+nb.html
+flat.py
