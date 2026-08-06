@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.20.2"
+__generated_with = "0.23.16"
 app = marimo.App(width="medium")
 
 
@@ -13,16 +13,57 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        """
-        # Qualtrics Processing Pipeline
+    mo.Html(
+    """
+    <style>
+    @import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,200..800;1,200..800&display=swap");
 
-        Turns a raw Qualtrics Excel export into a documented, analysis-ready package.
+    body,
+    .marimo,
+    #root,
+    .markdown,
+    .prose,
+    h1, h2, h3, h4, h5, h6,
+    p, li, dt, dd, td, th, caption,
+    a, span, div,
+    label, legend,
+    button, input, select, textarea,
+    .modal, .tooltip, .popover {
+      font-family: "Atkinson Hyperlegible Next", system-ui,
+        -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif !important;
+    }
 
-        Set `QUALTRICS_INPUT` and `QUALTRICS_OUTPUT` in the environment to run without
-        the file dialogs. Leave them unset to get the original pop-up pickers.
-        """
+    /* Code stays monospace. A legibility face is for prose, not for lining up
+       indentation and operators. */
+    code, pre, kbd, samp, var,
+    .cm-editor, .cm-editor *,
+    .cm-content, .cm-line, .cm-gutters,
+    [class*="language-"],
+    [class*="hljs"] {
+      font-family: "JetBrainsMono Nerd Font Mono", ui-monospace, SFMono-Regular,
+        Menlo, Consolas, monospace !important;
+    }
+    </style>
+    """
     )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    # Qualtrics Processing Pipeline
+
+    Turns a raw Qualtrics Excel export into a documented, analysis-ready package.
+
+    Pick an input file and an output folder below. Either browse from your home
+    directory or paste an absolute path from anywhere on the machine. Nothing runs
+    until an input file is set. If no output folder is chosen, the files go to a
+    timestamped folder in `~/Downloads`.
+
+    `QUALTRICS_INPUT` and `QUALTRICS_OUTPUT` override the pickers when set, which is
+    how the notebook runs headlessly as `python qualtrics_processing_pipeline.py`.
+    """)
     return
 
 
@@ -31,6 +72,9 @@ def _(mo):
     import json
     import os
     import re
+    import subprocess
+    import sys
+    import tempfile
     import warnings
     from datetime import datetime
     from pathlib import Path
@@ -46,6 +90,8 @@ def _(mo):
 
     import numpy as np
     import pandas as pd
+    from openpyxl import load_workbook
+    from openpyxl.styles import Font
 
     warnings.filterwarnings("ignore", category=UserWarning)
 
@@ -57,19 +103,156 @@ def _(mo):
         **pandas** `{pd.__version__}` &middot; **numpy** `{np.__version__}` &middot; **marimo** `{mo.__version__}`
         """
     )
-    return (Path, datetime, filedialog, json, np, os, pd, re, tk)
+    return (
+        Font,
+        Path,
+        datetime,
+        filedialog,
+        json,
+        load_workbook,
+        np,
+        os,
+        pd,
+        re,
+        subprocess,
+        sys,
+        tempfile,
+        tk,
+    )
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("## Step 1: Load Qualtrics Excel File")
+    mo.md("""
+    ## Step 1: Load Qualtrics Excel File
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("### Universal Qualtrics Excel File Loader")
+    mo.md("""
+    ### Universal Qualtrics Excel File Loader
+    """)
     return
+
+
+@app.cell
+def _(Path, mo, subprocess, sys):
+    _DIALOG_PROMPT = "Select a folder to save output files"
+
+
+    def _choose_output_folder(current):
+        # Never call Tk from here. Tcl interpreters bind to the OS thread that
+        # created them, and _tkinter blocks waiting on a Tk main loop that marimo's
+        # cell-execution thread never dispatches. That wait is the macOS spinner.
+        # The dialog therefore runs in its own process, which owns its own main
+        # thread.
+        #
+        # Wired through mo.ui.button rather than mo.ui.run_button on purpose: a
+        # run_button resets its value right after the cells reading it run, which
+        # refires the handler. mo.ui.button fires only on a real click and keeps its
+        # value across reruns.
+        if sys.platform == "darwin":
+            # AppleScript gives a real Finder dialog with no Tk involved at all.
+            command = [
+                "osascript",
+                "-e",
+                f'POSIX path of (choose folder with prompt "{_DIALOG_PROMPT}")',
+            ]
+        else:
+            command = [
+                sys.executable,
+                "-c",
+                "import tkinter as tk;"
+                "from tkinter import filedialog;"
+                "r = tk.Tk();"
+                "r.withdraw();"
+                "print(filedialog.askdirectory() or '')",
+            ]
+
+        try:
+            finished = subprocess.run(
+                command, capture_output=True, text=True, timeout=600
+            )
+        except Exception as exc:
+            return f"__error__{exc}"
+
+        lines = [line for line in finished.stdout.splitlines() if line.strip()]
+        chosen = lines[-1].strip() if lines else ""
+
+        # Cancelling exits non-zero with empty output; keep the previous choice.
+        return chosen or current
+
+
+    input_upload = mo.ui.file(
+        filetypes=[".xlsx", ".xls"],
+        multiple=False,
+        kind="button",
+        label="Click to add an Excel file",
+    )
+
+    # Common destinations, resolved without opening any window. This is the path
+    # that cannot hang, so it is the default rather than the fallback.
+    _candidates = {
+        "Downloads": Path.home() / "Downloads",
+        "Desktop": Path.home() / "Desktop",
+        "Documents": Path.home() / "Documents",
+        "Home folder": Path.home(),
+        "This notebook's folder": Path.cwd(),
+    }
+    _options = {name: str(p) for name, p in _candidates.items() if p.is_dir()}
+
+    output_dropdown = mo.ui.dropdown(
+        options=_options,
+        value="Downloads" if "Downloads" in _options else next(iter(_options)),
+        label="Save output to",
+    )
+
+    output_button = mo.ui.button(
+        value="",
+        on_click=_choose_output_folder,
+        label="Or pick any other folder",
+        tooltip="Opens the Finder folder dialog",
+    )
+
+    mo.vstack(
+        [
+            mo.md("### 1. Input file"),
+            input_upload,
+            mo.md("### 2. Output folder"),
+            output_dropdown,
+            output_button,
+        ]
+    )
+    return input_upload, output_button, output_dropdown
+
+
+@app.cell
+def _(Path, input_upload, mo, os, tempfile):
+    # The environment variable wins so the notebook stays runnable as a plain script.
+    _env_input = os.environ.get("QUALTRICS_INPUT")
+
+    if _env_input:
+        input_path = Path(_env_input).expanduser()
+    elif input_upload.value:
+        # An upload arrives as bytes, but the loader wants a path, so land it in the
+        # OS temp directory and hand over that path.
+        input_path = Path(tempfile.gettempdir()) / input_upload.name(0)
+        input_path.write_bytes(input_upload.contents(0))
+    else:
+        input_path = None
+
+    mo.stop(
+        input_path is None,
+        mo.callout(
+            mo.md("Click **Add an Excel file** above to start the pipeline."),
+            kind="info",
+        ),
+    )
+
+    mo.callout(mo.md(f"Reading `{input_path}`"), kind="success")
+    return (input_path,)
 
 
 @app.cell
@@ -409,8 +592,8 @@ def _(Path, filedialog, np, pd, re, tk):
 
 
 @app.cell
-def _(load_qualtrics_export, mo, os):
-    result = load_qualtrics_export(file_path=os.environ.get("QUALTRICS_INPUT") or None)
+def _(input_path, load_qualtrics_export, mo):
+    result = load_qualtrics_export(file_path=input_path)
 
     raw_data = result["raw_data"]
     file_info = result["file_info"]
@@ -465,13 +648,17 @@ def _(load_qualtrics_export, mo, os):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("## Step 2: Data Structure Separation")
+    mo.md("""
+    ## Step 2: Data Structure Separation
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("### Extract and Analyze Data Structure with Question Mapping")
+    mo.md("""
+    ### Extract and Analyze Data Structure with Question Mapping
+    """)
     return
 
 
@@ -918,7 +1105,9 @@ def _(extract_data_structure, mo, result):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("### Clean and Filter Response Data")
+    mo.md("""
+    ### Clean and Filter Response Data
+    """)
     return
 
 
@@ -1390,13 +1579,17 @@ def _(cleaning_result, mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("## Step 3: Data Type Optimization and Validation")
+    mo.md("""
+    ## Step 3: Data Type Optimization and Validation
+    """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("### Intelligent Data Type Detection")
+    mo.md("""
+    ### Intelligent Data Type Detection
+    """)
     return
 
 
@@ -2112,7 +2305,9 @@ def _(mo, typing_result):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("### Data Type Validation and Optimization")
+    mo.md("""
+    ### Data Type Validation and Optimization
+    """)
     return
 
 
@@ -2689,12 +2884,61 @@ def _(mo, typing_result, validate_and_optimize_data_types):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("## Step 4: Output Generation")
+    mo.md("""
+    ## Step 4: Output Generation
+    """)
     return
 
 
 @app.cell
-def _(Path, datetime, filedialog, json, np, os, pd, re, tk):
+def _(Path, mo, os, output_button, output_dropdown):
+    _env_output = os.environ.get("QUALTRICS_OUTPUT")
+    _picked = output_button.value or ""
+
+    # The handler returns a sentinel when the dialog could not run. Surface it rather
+    # than treating it as a path.
+    if _picked.startswith("__error__"):
+        mo.stop(
+            True,
+            mo.callout(
+                mo.md(
+                    f"Folder dialog failed: {_picked.removeprefix('__error__')}. "
+                    "Set `QUALTRICS_OUTPUT` instead."
+                ),
+                kind="danger",
+            ),
+        )
+
+    # The dialog wins when it was used, otherwise the dropdown, which always has a
+    # value. There is no state where the output folder is unresolved, so nothing
+    # blocks here.
+    if _env_output:
+        output_path = Path(_env_output).expanduser()
+    elif _picked:
+        output_path = Path(_picked)
+    else:
+        output_path = Path(output_dropdown.value)
+
+    # No directory is created here. Step 4 calls os.makedirs itself, so nothing lands
+    # on disk until the pipeline actually runs.
+    mo.callout(mo.md(f"Writing to `{output_path}`"), kind="success")
+    return (output_path,)
+
+
+@app.cell
+def _(
+    Font,
+    Path,
+    datetime,
+    filedialog,
+    json,
+    load_workbook,
+    np,
+    os,
+    pd,
+    re,
+    tk,
+):
     # Step 4: Generate Final Datasets and Documentation - ENHANCED VERSION
     # INCLUDES: JSON output for sentiment analysis and GUI folder selection
 
@@ -2867,7 +3111,9 @@ def _(Path, datetime, filedialog, json, np, os, pd, re, tk):
 
         html_style = """
         <style>
-            body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 40px; color: #333; background-color: #f9f9f9;}
+            @import url("https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Next:ital,wght@0,200..800;1,200..800&display=swap");
+            body { font-family: "Atkinson Hyperlegible Next", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; margin: 40px; color: #333; background-color: #f9f9f9;}
+            h1, h2, h3, table, th, td, summary, details, .summary-box, .bar, .q-label, .matrix-question, p, li { font-family: inherit; }
             h1, h2, h3 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; margin-top: 40px;}
             h1 { font-size: 2.5em; }
             table { border-collapse: collapse; width: 100%; margin-bottom: 20px; box-shadow: 0 2px 3px rgba(0,0,0,0.1); }
@@ -3120,9 +3366,37 @@ def _(Path, datetime, filedialog, json, np, os, pd, re, tk):
         if export_excel:
             excel_filepath = output_dir / 'analysis_ready_data.xlsx'
             analysis_data.to_excel(excel_filepath, index=False, sheet_name='Survey Data')
+            apply_output_font(excel_filepath)
             generated_files['analysis_dataset_excel'] = str(excel_filepath)
             export_summary['files_created'].append(str(excel_filepath))
             print(f"Created {excel_filepath.name}: Excel version")
+
+    def apply_output_font(filepath, font_name="Atkinson Hyperlegible Next"):
+        """
+        Set a single font on every cell of an already-written workbook.
+
+        Excel cannot fetch a web font, so this renders in Atkinson Hyperlegible Next
+        only where the font is installed locally and falls back to the workbook
+        default elsewhere. On macOS:
+            brew install --cask font-atkinson-hyperlegible-next
+        """
+        workbook = load_workbook(filepath)
+
+        for sheet in workbook.worksheets:
+            for row in sheet.iter_rows():
+                for cell in row:
+                    current = cell.font
+                    cell.font = Font(
+                        name=font_name,
+                        size=current.size,
+                        bold=current.bold,
+                        italic=current.italic,
+                        underline=current.underline,
+                        color=current.color,
+                    )
+
+        workbook.save(filepath)
+
 
     def create_comprehensive_codebook_with_mapping(df, question_mapping, generated_files, export_summary, output_dir, export_excel):
         """
@@ -3180,6 +3454,7 @@ def _(Path, datetime, filedialog, json, np, os, pd, re, tk):
         if export_excel:
             excel_filepath = output_dir / 'comprehensive_codebook.xlsx'
             codebook_df.to_excel(excel_filepath, index=False, sheet_name='Codebook')
+            apply_output_font(excel_filepath)
             generated_files['codebook_excel'] = str(excel_filepath)
             export_summary['files_created'].append(str(excel_filepath))
             print(f"Created {excel_filepath.name}: Excel version")
@@ -3224,6 +3499,8 @@ def _(Path, datetime, filedialog, json, np, os, pd, re, tk):
                     })
                 pd.DataFrame(text_summary_list).to_excel(writer, sheet_name='Text Variables', index=False)
 
+        apply_output_font(filepath)
+
         generated_files['variable_summaries'] = str(filepath)
         export_summary['files_created'].append(str(filepath))
         print(f"Created {filepath.name}: Variable summaries by type")
@@ -3254,12 +3531,18 @@ def _(Path, datetime, filedialog, json, np, os, pd, re, tk):
 
 
 @app.cell
-def _(generate_final_datasets, mo, optimization_result, os, structure_result):
+def _(
+    generate_final_datasets,
+    mo,
+    optimization_result,
+    output_path,
+    structure_result,
+):
     final_result = generate_final_datasets(
         optimization_result,
         structure_result,
         export_excel_duplicates=True,
-        output_dir=os.environ.get("QUALTRICS_OUTPUT") or None,
+        output_dir=output_path,
     )
 
     files_created = final_result["export_summary"]["files_created"]

@@ -40,7 +40,8 @@ The same pipeline logic is available in two notebook formats. Pick whichever fit
 | --- | --- | --- |
 | Format | Jupyter notebook (JSON) | marimo notebook (plain Python) |
 | Editor | [Jupyter Notebook](https://jupyter.org), [JupyterLab](https://jupyterlab.readthedocs.io), [VS Code](https://code.visualstudio.com) | [`marimo edit`](https://docs.marimo.io/guides/editor_features/) |
-| Execution order | Whatever you ran last | [Dependency graph](https://docs.marimo.io/guides/editor_features/dataflow/), automatic |
+| Picking your files | Two [Tkinter](https://docs.python.org/3/library/tkinter.html) pop-up dialogs | Upload button and a folder dropdown in the notebook |
+| Execution order | Whatever you ran last | [Dataflow graph](https://docs.marimo.io/guides/editor_features/dataflow/), automatic |
 | Run headlessly | Needs [nbconvert](https://nbconvert.readthedocs.io) or [papermill](https://papermill.readthedocs.io) | `python qualtrics_processing_pipeline.py` |
 | Git diffs | Noisy, outputs and metadata included | Clean, it is a real Python file |
 | Setup | Ships with [Anaconda](https://www.anaconda.com/products/distribution) | `pip install marimo` |
@@ -61,6 +62,7 @@ A notebook keeps the process transparent, interactive, and easy to follow.
 - **One definition per name.** A variable can only be assigned in one cell, so you never have two versions of `df` in play depending on what you clicked last. The [key concepts guide](https://docs.marimo.io/getting_started/key_concepts/) covers the constraints this imposes.
 - **It is a Python file.** `git diff` shows the code you changed, not a wall of JSON. The file imports and runs like any other module.
 - **Two run modes from one file.** `marimo edit` opens the interactive editor. `python qualtrics_processing_pipeline.py` runs the whole pipeline start to finish with no editor and no browser.
+- **Interactive controls instead of pop-ups.** File selection uses `mo.ui` elements rendered in the notebook, so changing the input file re-runs every downstream step against the new data automatically.
 
 The marimo team's [post on notebooks as dataflow graphs](https://marimo.io/blog/dataflow) explains the design, and the [FAQ](https://docs.marimo.io/faq/) covers the common friction points when moving over from Jupyter.
 
@@ -70,12 +72,13 @@ The tradeoff is that the marimo version is stricter. The Jupyter version lets yo
 
 ## Features
 
-- **Pop-up file selection:** [Tkinter](https://docs.python.org/3/library/tkinter.html) windows guide you to choose your input file and output folder.
-- **Environment variable overrides:** Set `QUALTRICS_INPUT` and `QUALTRICS_OUTPUT` to skip the dialogs entirely, which is what makes headless and automated runs possible.
+- **Point-and-click file selection:** The marimo notebook gives you an upload button for the Excel file and a dropdown of common output folders, with an optional Finder dialog for anywhere else. The Jupyter notebook uses two Tkinter pop-ups.
+- **Environment variable overrides:** Set `QUALTRICS_INPUT` and `QUALTRICS_OUTPUT` to bypass the controls entirely, which is what makes headless and automated runs possible.
 - **Automated data cleaning:** Removes test data, standardizes values, and creates data quality flags.
 - **Data typing:** Sets numbers, dates, and categories to the correct types to prevent common analysis errors.
 - **HTML report:** Generates a single, shareable report with data quality metrics and response summaries.
 - **NLP-ready JSON export:** Creates a structured [JSON](https://www.json.org/json-en.html) file for sentiment analysis or topic modeling.
+- **Accessible typography throughout:** The notebook, the HTML report, and all three Excel workbooks are set in [Atkinson Hyperlegible Next](https://fonts.google.com/specimen/Atkinson+Hyperlegible+Next), the [Braille Institute](https://www.brailleinstitute.org) typeface designed to maximize character distinction for low-vision readers. The HTML outputs load it as a web font, so it renders whether or not the font is installed.
 - **Test fixture included:** A synthetic Qualtrics export lives in `tests/` so you can confirm the pipeline works before pointing it at real data.
 
 ---
@@ -108,9 +111,13 @@ The tradeoff is that the marimo version is stricter. The Jupyter version lets yo
    marimo edit qualtrics_processing_pipeline.py
 ```
 
-   A browser tab opens with the notebook. Cells run automatically in dependency order.
+   A browser tab opens with the notebook. Nothing runs yet; the pipeline waits for an input file.
 
-3. **Or run it headlessly, with no browser at all:**
+3. **Click "Add an Excel file"** and pick your raw Qualtrics export. Steps 1 through 3 run immediately.
+
+4. **Choose an output folder** from the dropdown. It offers Downloads, Desktop, Documents, your home folder, and the notebook's own folder, and defaults to Downloads. Use the "Or pick any other folder" button for somewhere else. Step 4 writes the files.
+
+5. **Or run it headlessly, with no browser at all:**
 
 ```bash
    QUALTRICS_INPUT=./raw_export.xlsx \
@@ -118,7 +125,9 @@ The tradeoff is that the marimo version is stricter. The Jupyter version lets yo
    python qualtrics_processing_pipeline.py
 ```
 
-   With those two variables set, the pipeline runs start to finish and writes everything to `./output`. Leave either one unset and you get the original pop-up picker for that step.
+   With those two variables set, the pipeline runs start to finish and writes everything to `./output`. They also override the notebook controls when the editor is open.
+
+Changing the input file re-runs every downstream step against the new data. Nothing is written to disk until Step 4 actually runs.
 
 ### Option B: The Jupyter Notebook
 
@@ -128,22 +137,14 @@ If you're new to Python or data analysis, the easiest way to get started is the 
 2. **Install Anaconda:** Run the installer and follow the on-screen instructions. The default settings are fine.
 3. **Launch Jupyter Notebook:** Once installed, open the **Anaconda Navigator** application. From the home screen, click "Launch" under Jupyter Notebook. A new tab will open in your web browser with the Jupyter file navigator.
 4. **Run the pipeline:** Navigate to `qualtrics_processing_pipeline.ipynb` and click it to open. Then select "Run All Cells" from the "Cell" or "Run" menu at the top.
+5. **Select your input file:** A window pops up. Navigate to and select the raw Qualtrics Excel file (.xlsx or .xls) you want to process.
+6. **Choose your output folder:** A second window appears. Choose the folder where you want to save your clean files.
 
 The required libraries ([pandas](https://pandas.pydata.org), [numpy](https://numpy.org), [openpyxl](https://openpyxl.readthedocs.io)) ship with Anaconda, so no further setup is needed.
 
-### Either Way
+### Reviewing Your Output
 
-1. **Select your input file:**
-
-   A window will pop up. Navigate to and select the raw Qualtrics Excel file (.xlsx or .xls) you want to process.
-
-2. **Choose your output folder:**
-
-   A second window will appear. Choose the folder where you want to save your clean files.
-
-3. **Review your output:**
-
-   Open your chosen output folder to find the finished, analysis-ready files.
+Either way, open your chosen output folder and start with `comprehensive_summary_report.html`.
 
 ---
 
