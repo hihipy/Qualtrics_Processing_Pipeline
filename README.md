@@ -13,7 +13,7 @@
 [![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
 [![Tkinter](https://img.shields.io/badge/Tkinter-FFD43B?style=flat&logo=python&logoColor=black)](https://docs.python.org/3/library/tkinter.html)
 
-A Python pipeline that turns raw [Qualtrics](https://www.qualtrics.com) Excel exports into a documented, analysis-ready package. It removes test data, corrects data types, and generates reports and codebooks automatically. Ships as both a [Jupyter](https://jupyter.org) notebook and a [marimo](https://marimo.io) notebook.
+A Python pipeline that turns raw Qualtrics Excel exports into a documented, analysis-ready package. It removes test data, corrects data types, and generates reports and codebooks automatically. Ships as both a Jupyter notebook and a [marimo](https://marimo.io) notebook.
 
 ---
 
@@ -39,12 +39,12 @@ The same pipeline logic is available in two notebook formats. Pick whichever fit
 | | `qualtrics_processing_pipeline.ipynb` | `qualtrics_processing_pipeline.py` |
 | --- | --- | --- |
 | Format | Jupyter notebook (JSON) | marimo notebook (plain Python) |
-| Editor | [Jupyter Notebook](https://jupyter.org), [JupyterLab](https://jupyterlab.readthedocs.io), [VS Code](https://code.visualstudio.com) | [`marimo edit`](https://docs.marimo.io/guides/editor_features/) |
-| Picking your files | Two [Tkinter](https://docs.python.org/3/library/tkinter.html) pop-up dialogs | Upload button and a folder dropdown in the notebook |
-| Execution order | Whatever you ran last | [Dataflow graph](https://docs.marimo.io/guides/editor_features/dataflow/), automatic |
-| Run headlessly | Needs [nbconvert](https://nbconvert.readthedocs.io) or [papermill](https://papermill.readthedocs.io) | `python qualtrics_processing_pipeline.py` |
+| Editor | Jupyter Notebook, JupyterLab, VS Code | `marimo edit` |
+| Picking your files | Two Tkinter pop-up dialogs | Upload button and a folder dropdown in the notebook |
+| Execution order | Whatever you ran last | Dataflow graph, automatic |
+| Run headlessly | Needs nbconvert or papermill | `python qualtrics_processing_pipeline.py` |
 | Git diffs | Noisy, outputs and metadata included | Clean, it is a real Python file |
-| Setup | Ships with [Anaconda](https://www.anaconda.com/products/distribution) | `pip install marimo` |
+| Setup | Ships with Anaconda | `pip install marimo` |
 
 ### Why a Notebook at All
 
@@ -56,15 +56,13 @@ A notebook keeps the process transparent, interactive, and easy to follow.
 
 ### What marimo Adds
 
-[marimo](https://github.com/marimo-team/marimo) is a reactive Python notebook stored as an ordinary `.py` file. Per the [marimo documentation](https://docs.marimo.io) (validated here against marimo 0.23.16), it differs from Jupyter in a few ways that matter for a multi-step cleaning pipeline:
+marimo is a reactive Python notebook stored as an ordinary `.py` file. Per the [marimo documentation](https://docs.marimo.io) (validated here against marimo 0.23.16), it differs from Jupyter in a few ways that matter for a multi-step cleaning pipeline:
 
-- **No stale state.** marimo builds a [dataflow graph](https://docs.marimo.io/guides/editor_features/dataflow/) from the code. Change the cleaning step and every step downstream of it reruns. There is no way to end up looking at output from a cell that no longer matches its inputs.
-- **One definition per name.** A variable can only be assigned in one cell, so you never have two versions of `df` in play depending on what you clicked last. The [key concepts guide](https://docs.marimo.io/getting_started/key_concepts/) covers the constraints this imposes.
+- **No stale state.** marimo builds a dataflow graph from the code. Change the cleaning step and every step downstream of it reruns. There is no way to end up looking at output from a cell that no longer matches its inputs.
+- **One definition per name.** A variable can only be assigned in one cell, so you never have two versions of `df` in play depending on what you clicked last.
 - **It is a Python file.** `git diff` shows the code you changed, not a wall of JSON. The file imports and runs like any other module.
 - **Two run modes from one file.** `marimo edit` opens the interactive editor. `python qualtrics_processing_pipeline.py` runs the whole pipeline start to finish with no editor and no browser.
 - **Interactive controls instead of pop-ups.** File selection uses `mo.ui` elements rendered in the notebook, so changing the input file re-runs every downstream step against the new data automatically.
-
-The marimo team's [post on notebooks as dataflow graphs](https://marimo.io/blog/dataflow) explains the design, and the [FAQ](https://docs.marimo.io/faq/) covers the common friction points when moving over from Jupyter.
 
 The tradeoff is that the marimo version is stricter. The Jupyter version lets you rerun a single cell in isolation to poke at something, which is sometimes what you want when a specific column is misbehaving.
 
@@ -77,8 +75,8 @@ The tradeoff is that the marimo version is stricter. The Jupyter version lets yo
 - **Automated data cleaning:** Removes test data, standardizes values, and creates data quality flags.
 - **Data typing:** Sets numbers, dates, and categories to the correct types to prevent common analysis errors.
 - **HTML report:** Generates a single, shareable report with data quality metrics and response summaries.
-- **NLP-ready JSON export:** Creates a structured [JSON](https://www.json.org/json-en.html) file for sentiment analysis or topic modeling.
-- **Accessible typography throughout:** The notebook, the HTML report, and all three Excel workbooks are set in [Atkinson Hyperlegible Next](https://fonts.google.com/specimen/Atkinson+Hyperlegible+Next), the [Braille Institute](https://www.brailleinstitute.org) typeface designed to maximize character distinction for low-vision readers. The HTML outputs load it as a web font, so it renders whether or not the font is installed.
+- **NLP-ready JSON export:** Creates a structured JSON file for sentiment analysis or topic modeling.
+- **Accessible typography throughout:** The notebook, the HTML report, and all three Excel workbooks are set in [Atkinson Hyperlegible Next](https://fonts.google.com/specimen/Atkinson+Hyperlegible+Next), a Braille Institute typeface designed to maximize character distinction for low-vision readers. The HTML outputs load it as a web font, so it renders whether or not the font is installed.
 - **Test fixture included:** A synthetic Qualtrics export lives in `tests/` so you can confirm the pipeline works before pointing it at real data.
 
 ---
@@ -131,7 +129,7 @@ Changing the input file re-runs every downstream step against the new data. Noth
 
 ### Option B: The Jupyter Notebook
 
-If you're new to Python or data analysis, the easiest way to get started is the **Anaconda Distribution**, a free, all-in-one package that includes [Python](https://www.python.org), Jupyter Notebook, and the essential data science libraries.
+If you're new to Python or data analysis, the easiest way to get started is the **Anaconda Distribution**, a free, all-in-one package that includes Python, Jupyter Notebook, and the essential data science libraries.
 
 1. **Download Anaconda:** Go to the [Anaconda Distribution page](https://www.anaconda.com/products/distribution) and download the installer for your operating system (Windows, macOS, or Linux).
 2. **Install Anaconda:** Run the installer and follow the on-screen instructions. The default settings are fine.
@@ -140,7 +138,7 @@ If you're new to Python or data analysis, the easiest way to get started is the 
 5. **Select your input file:** A window pops up. Navigate to and select the raw Qualtrics Excel file (.xlsx or .xls) you want to process.
 6. **Choose your output folder:** A second window appears. Choose the folder where you want to save your clean files.
 
-The required libraries ([pandas](https://pandas.pydata.org), [numpy](https://numpy.org), [openpyxl](https://openpyxl.readthedocs.io)) ship with Anaconda, so no further setup is needed.
+The required libraries (pandas, numpy, openpyxl) ship with Anaconda, so no further setup is needed.
 
 ### Reviewing Your Output
 
@@ -191,7 +189,7 @@ The pipeline produces a full set of files to support every stage of your analysi
 | File Name                            | Description                                                  |
 | ------------------------------------ | ------------------------------------------------------------ |
 | `comprehensive_summary_report.html`  | **Primary report.** HTML document with key stats, quality checks, and response patterns. Open this first. |
-| `analysis_ready_data.csv / .xlsx`    | **Clean dataset.** The file to load into your analysis software ([R](https://www.r-project.org), [Python](https://www.python.org), Tableau, etc.). Contains clean data with corrected types. |
+| `analysis_ready_data.csv / .xlsx`    | **Clean dataset.** The file to load into your analysis software (R, Python, Tableau, etc.). Contains clean data with corrected types. |
 | `sentiment_analysis_data.json`       | **NLP-ready dataset.** Structured JSON file for sentiment analysis, topic modeling, or other text-based analysis. This is the input for the `simple_sentiment_analyzer.py` script. |
 | `sentiment_analysis_flattened.csv`   | **Flattened text data.** One row per response-question pair, for row-based text analysis tools. |
 | `comprehensive_codebook.csv / .xlsx` | **Data dictionary.** Translates cryptic column names like `q5` into the full, human-readable question text. |
