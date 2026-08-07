@@ -191,7 +191,7 @@ The pipeline produces a full set of files to support every stage of your analysi
 | File Name                            | Description                                                  |
 | ------------------------------------ | ------------------------------------------------------------ |
 | `comprehensive_summary_report.html`  | **Primary report.** HTML document with key stats, quality checks, and response patterns. Open this first. |
-| `analysis_ready_data.csv / .xlsx`    | **Clean dataset.** The file to load into your analysis software ([R](https://www.r-project.org), [Python](https://www.python.org), [Tableau](https://www.tableau.com), etc.). Contains clean data with corrected types. |
+| `analysis_ready_data.csv / .xlsx`    | **Clean dataset.** The file to load into your analysis software ([R](https://www.r-project.org), [Python](https://www.python.org), Tableau, etc.). Contains clean data with corrected types. |
 | `sentiment_analysis_data.json`       | **NLP-ready dataset.** Structured JSON file for sentiment analysis, topic modeling, or other text-based analysis. This is the input for the `simple_sentiment_analyzer.py` script. |
 | `sentiment_analysis_flattened.csv`   | **Flattened text data.** One row per response-question pair, for row-based text analysis tools. |
 | `comprehensive_codebook.csv / .xlsx` | **Data dictionary.** Translates cryptic column names like `q5` into the full, human-readable question text. |
