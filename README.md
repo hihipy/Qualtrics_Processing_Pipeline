@@ -7,7 +7,7 @@
 
 [![Jupyter](https://img.shields.io/badge/Jupyter-F37626?style=flat&logo=jupyter&logoColor=white)](https://jupyter.org)
 [![Marimo](https://img.shields.io/badge/Marimo-1C7361?style=flat&logo=data%3Aimage%2Fpng%3Bbase64%2CiVBORw0KGgoAAAANSUhEUgAAADYAAAA4AQMAAACMgZnuAAAABlBMVEX%2F%2F%2F%2F%2F%2F%2F9VfPVsAAAAAXRSTlMAQObYZgAAARpJREFUeNp1zr1PU3EcRvHP%2Ff6gbUKwuhEx0DAYJkOiiSYQXgZGEhd2RuOibowdHBwd3eRfYNPJS%2BLAyAQdCLkkDhAYSofSGi51uHUyTifPc5aD%2BgWCVw3g1nuS9Oj7r55ksndzU%2BJJ4Zwwu%2BdljmUm3uCY9EI4pnxL1sGWqHVw0g67eCBNbR%2Fy%2BzYedtHfS9NR4Fm01uF13MH9TmyAlg%2BQLUZRRcUCjD7rgS%2FRHf8VfsYE6I63f1iCIuI%2F%2Fi%2BP2rAUX6uO8X8XjbzyVU9htQVHcVrt1OgPyDox%2FIRY0jxErYj%2BNeo7UT7G9HqK5mZu8ansW84VTlekM7xrDuZW8Lw9GgwwU2QHBWpr9%2FVcJn0c%2FjgQysvhPpgf4Q%2BkZFJVMy0tZgAAAABJRU5ErkJggg%3D%3D)](https://marimo.io)
-[![NumPy](https://img.shields.io/badge/NumPy-013243?style=flat&logo=numpy&logoColor=white)](https://numpy.org)
+[![numpy](https://img.shields.io/badge/numpy-013243?style=flat&logo=numpy&logoColor=white)](https://numpy.org)
 [![openpyxl](https://img.shields.io/badge/openpyxl-2E7D32?style=flat&logoColor=white)](https://openpyxl.readthedocs.io)
 [![pandas](https://img.shields.io/badge/pandas-150458?style=flat&logo=pandas&logoColor=white)](https://pandas.pydata.org)
 [![Python](https://img.shields.io/badge/Python-3776AB?style=flat&logo=python&logoColor=white)](https://python.org)
